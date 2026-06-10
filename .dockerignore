@@ -1,0 +1,10 @@
+__pycache__
+*.pyc
+*.db
+node_modules
+app/
+admin/src/
+admin/node_modules/
+admin/public/
+flutter_app_source.tar.gz
+*.log

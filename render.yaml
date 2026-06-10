@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: life-survey
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: free
+    envVars:
+      - key: ADMIN_DIST
+        value: /app/admin_dist
