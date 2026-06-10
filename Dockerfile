@@ -5,6 +5,7 @@ WORKDIR /app
 # 安装系统依赖
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
+    default-libmysqlclient-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # 安装Python依赖
@@ -23,7 +24,6 @@ RUN mkdir -p /data
 # 环境变量
 ENV PORT=10000
 ENV ADMIN_DIST=/app/admin_dist
-ENV DATA_DIR=/data
 
 EXPOSE 10000
 

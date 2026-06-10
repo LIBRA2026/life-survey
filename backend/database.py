@@ -1,23 +1,34 @@
 """
 数据库配置文件
-使用SQLite数据库，支持快速切换到PostgreSQL
+支持MySQL（云部署）和SQLite（本地开发）
+优先使用DATABASE_URL环境变量，无则回退到SQLite
 """
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import os
 
-# 数据库路径 - 优先使用环境变量指定的持久化目录（Render等平台）
-DATA_DIR = os.environ.get("DATA_DIR", os.path.dirname(os.path.abspath(__file__)))
-DATABASE_URL = f"sqlite:///{os.path.join(DATA_DIR, 'life_survey.db')}"
+# 数据库配置 - 优先使用环境变量（Zeabur等平台自动注入MYSQL_URL）
+DATABASE_URL = os.environ.get("DATABASE_URL") or os.environ.get("MYSQL_URL")
 
-print(f"[数据库] 使用数据库文件: {DATABASE_URL}")
-
-# 创建引擎
-engine = create_engine(
-    DATABASE_URL,
-    connect_args={"check_same_thread": False}  # SQLite特定配置
-)
+if DATABASE_URL:
+    # 云部署：使用MySQL
+    # SQLAlchemy 2.0需要mysql+pymysql://格式
+    if DATABASE_URL.startswith("mysql://"):
+        DATABASE_URL = DATABASE_URL.replace("mysql://", "mysql+pymysql://", 1)
+    elif DATABASE_URL.startswith("mysql+mysqlconnector://"):
+        DATABASE_URL = DATABASE_URL.replace("mysql+mysqlconnector://", "mysql+pymysql://", 1)
+    print(f"[数据库] 使用MySQL: {DATABASE_URL.split('@')[-1] if '@' in DATABASE_URL else DATABASE_URL}")
+    engine = create_engine(DATABASE_URL, pool_pre_ping=True, pool_recycle=3600)
+else:
+    # 本地开发：使用SQLite
+    DATA_DIR = os.environ.get("DATA_DIR", os.path.dirname(os.path.abspath(__file__)))
+    DATABASE_URL = f"sqlite:///{os.path.join(DATA_DIR, 'life_survey.db')}"
+    print(f"[数据库] 使用SQLite: {DATABASE_URL}")
+    engine = create_engine(
+        DATABASE_URL,
+        connect_args={"check_same_thread": False}
+    )
 
 # 会话工厂
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
