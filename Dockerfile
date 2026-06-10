@@ -17,10 +17,14 @@ COPY backend/ .
 # 复制前端build产物
 COPY admin/dist/ ./admin_dist/
 
+# 数据持久化目录
+RUN mkdir -p /data
+
 # 环境变量
 ENV PORT=10000
 ENV ADMIN_DIST=/app/admin_dist
+ENV DATA_DIR=/data
 
 EXPOSE 10000
 
-CMD uvicorn main:app --host 0.0.0.0 --port $PORT
+CMD uvicorn main:app --host 0.0.0.0 --port ${PORT:-10000}
